@@ -1,0 +1,27 @@
+{% extends 'restaurants/base.html' %}
+{% block title %}Claim {{ restaurant.name }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="fm-card p-5 text-center">
+        <div style="font-size:3.5rem;">🏷️</div>
+        <h3 class="fw-800 mt-3 mb-2">Claim This Restaurant</h3>
+        <h5 class="text-orange mb-3">{{ restaurant.name }}</h5>
+        <p class="text-muted mb-4">
+          By claiming this listing you confirm you are the owner or authorised
+          manager of <strong>{{ restaurant.name }}</strong>. You will be able to
+          edit the listing, manage the menu, and reply to reviews.
+        </p>
+        <form method="post" class="d-flex gap-3 justify-content-center">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success px-5 fw-600">
+            <i class="bi bi-patch-check me-1"></i> Yes, Claim It
+          </button>
+          <a href="{% url 'restaurant_detail' restaurant.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

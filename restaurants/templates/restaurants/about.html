@@ -1,0 +1,101 @@
+{% extends 'restaurants/base.html' %}
+
+{% block title %}About{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section style="background:linear-gradient(135deg,var(--fm-dark) 0%,#16213e 60%); padding:70px 0; color:#fff;">
+  <div class="container text-center">
+    <div style="font-size:4rem; margin-bottom:1rem;">🍽️</div>
+    <h1 class="fw-800 display-5 mb-3">About FlavorMap</h1>
+    <p class="lead mb-0" style="color:rgba(255,255,255,.7); max-width:560px; margin:0 auto;">
+      A community-driven platform for discovering, reviewing, and saving the best
+      restaurants — built with Django.
+    </p>
+  </div>
+</section>
+
+<div class="container py-5">
+
+  <!-- Live stats -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-3 col-6">
+      <div class="fm-card p-4 text-center">
+        <div style="font-size:2.5rem; font-weight:800; color:var(--fm-orange);">{{ stats.restaurants }}</div>
+        <div class="text-muted small fw-600">Restaurants</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="fm-card p-4 text-center">
+        <div style="font-size:2.5rem; font-weight:800; color:#4ade80;">{{ stats.reviews }}</div>
+        <div class="text-muted small fw-600">Reviews</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="fm-card p-4 text-center">
+        <div style="font-size:2.5rem; font-weight:800; color:#60a5fa;">{{ stats.users }}</div>
+        <div class="text-muted small fw-600">Reviewers</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="fm-card p-4 text-center">
+        <div style="font-size:2.5rem; font-weight:800; color:#f472b6;">{{ stats.cities }}</div>
+        <div class="text-muted small fw-600">Cities</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-5">
+    <!-- Features -->
+    <div class="col-lg-6">
+      <h2 class="section-title">✨ Features</h2>
+      <ul class="list-unstyled">
+        {% for feature in features %}
+        <li class="d-flex align-items-start gap-2 mb-3">
+          <span class="mt-1" style="font-size:1.1rem;">{{ feature|slice:":2" }}</span>
+          <span>{{ feature|slice:"2:" }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Team -->
+    <div class="col-lg-6">
+      <h2 class="section-title">👥 Meet the Team</h2>
+      {% for member in team_members %}
+      <div class="d-flex align-items-center gap-3 mb-3 p-3 fm-card" style="border-radius:12px;">
+        <div style="width:52px; height:52px; background:var(--fm-orange); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0;">
+          {{ member.emoji }}
+        </div>
+        <div>
+          <div class="fw-700">{{ member.name }}</div>
+          <div class="text-muted small">{{ member.role }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Tech stack (hardcoded as per MS1 style) -->
+  <div class="mt-5">
+    <h2 class="section-title">🛠️ Technology Stack</h2>
+    <div class="row g-3">
+      {% for tech in "Django 4.2,Python 3.12,Bootstrap 5,SQLite,Pillow,Crispy Forms"|split:"," %}
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="fm-card p-3 text-center">
+          <div class="fw-600 small">{{ tech }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="mt-5 text-center">
+    <a href="{% url 'restaurant_list' %}" class="btn btn-primary btn-lg px-5 fw-700">
+      Explore Restaurants →
+    </a>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends 'restaurants/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ action }} Restaurant{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+          {% if restaurant %}
+          <li class="breadcrumb-item"><a href="{% url 'restaurant_detail' restaurant.pk %}">{{ restaurant.name }}</a></li>
+          {% endif %}
+          <li class="breadcrumb-item active">{{ action }} Restaurant</li>
+        </ol>
+      </nav>
+
+      <div class="fm-card p-4 p-lg-5">
+        <div class="mb-4">
+          <h2 class="fw-800 mb-1">
+            {% if action == 'Add' %}🍽️ Add a New Restaurant{% else %}✏️ Edit Restaurant{% endif %}
+          </h2>
+          <p class="text-muted mb-0">
+            {% if action == 'Add' %}
+              Share a great restaurant with the FlavorMap community.
+            {% else %}
+              Update the details for {{ restaurant.name }}.
+            {% endif %}
+          </p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+
+          <!-- Section: Basic Info -->
+          <div class="mb-4">
+            <h6 class="fw-700 text-uppercase mb-3"
+                style="font-size:.72rem; letter-spacing:1.2px; color:var(--fm-orange);">
+              📋 Basic Information
+            </h6>
+            <div class="row g-3">
+              <div class="col-12">{{ form.name|as_crispy_field }}</div>
+              <div class="col-12">{{ form.description|as_crispy_field }}</div>
+              <div class="col-md-6">{{ form.category|as_crispy_field }}</div>
+              <div class="col-md-6">{{ form.price_range|as_crispy_field }}</div>
+            </div>
+          </div>
+
+          <!-- Section: Contact & Location -->
+          <div class="mb-4">
+            <h6 class="fw-700 text-uppercase mb-3"
+                style="font-size:.72rem; letter-spacing:1.2px; color:var(--fm-orange);">
+              📍 Contact & Location
+            </h6>
+            <div class="row g-3">
+              <div class="col-12">{{ form.address|as_crispy_field }}</div>
+              <div class="col-md-6">{{ form.city|as_crispy_field }}</div>
+              <div class="col-md-6">{{ form.district|as_crispy_field }}</div>
+              <div class="col-md-4">{{ form.phone|as_crispy_field }}</div>
+              <div class="col-md-4">{{ form.email|as_crispy_field }}</div>
+              <div class="col-md-4">{{ form.website|as_crispy_field }}</div>
+            </div>
+          </div>
+
+          <!-- Section: Map Coordinates -->
+          <div class="mb-4">
+            <h6 class="fw-700 text-uppercase mb-3"
+                style="font-size:.72rem; letter-spacing:1.2px; color:var(--fm-orange);">
+              🗺️ Map Coordinates <small class="text-muted normal-case fw-400">(optional — enables map embed)</small>
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">{{ form.latitude|as_crispy_field }}</div>
+              <div class="col-md-6">{{ form.longitude|as_crispy_field }}</div>
+            </div>
+            <p class="text-muted small mt-1">
+              <i class="bi bi-info-circle"></i>
+              Find coordinates at
+              <a href="https://www.latlong.net/" target="_blank" rel="noopener">latlong.net</a> or
+              right-click on Google Maps → "What's here?"
+            </p>
+          </div>
+
+          <!-- Section: Photo -->
+          <div class="mb-4">
+            <h6 class="fw-700 text-uppercase mb-3"
+                style="font-size:.72rem; letter-spacing:1.2px; color:var(--fm-orange);">
+              📷 Main Photo
+            </h6>
+            {% if restaurant and restaurant.main_photo %}
+            <div class="mb-2">
+              <img src="{{ restaurant.main_photo.url }}" style="max-height:150px; border-radius:8px;" alt="Current photo">
+              <p class="small text-muted mt-1">Current photo — upload a new one to replace.</p>
+            </div>
+            {% endif %}
+            {{ form.main_photo|as_crispy_field }}
+          </div>
+
+          <!-- Non-field errors -->
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+            <p class="mb-0">{{ error }}</p>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- Submit -->
+          <div class="d-flex gap-3 mt-4 pt-2 border-top">
+            <button type="submit" class="btn btn-primary px-5 fw-600">
+              <i class="bi bi-check-lg me-1"></i>
+              {{ action }} Restaurant
+            </button>
+            {% if restaurant %}
+            <a href="{% url 'restaurant_detail' restaurant.pk %}" class="btn btn-outline-secondary px-4">
+              Cancel
+            </a>
+            {% else %}
+            <a href="{% url 'restaurant_list' %}" class="btn btn-outline-secondary px-4">
+              Cancel
+            </a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

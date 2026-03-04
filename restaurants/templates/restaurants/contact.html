@@ -1,0 +1,118 @@
+{% extends 'restaurants/base.html' %}
+
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <div class="row g-5">
+    <!-- Contact form -->
+    <div class="col-lg-7">
+      <h1 class="section-title fw-800">📬 Contact Us</h1>
+      <p class="text-muted mb-4">Have a question, a suggestion, or want to partner with us? Drop us a message.</p>
+
+      {% if submitted %}
+      <div class="alert alert-success d-flex align-items-center gap-3">
+        <i class="bi bi-check-circle-fill fs-4"></i>
+        <div>
+          <strong>Message sent!</strong><br>
+          <span class="small">We'll get back to you within 24 hours.</span>
+        </div>
+      </div>
+      {% else %}
+      <div class="fm-card p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-600">Your Name</label>
+              <input type="text" class="form-control" name="name" placeholder="Jane Smith" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Email Address</label>
+              <input type="email" class="form-control" name="email" placeholder="jane@example.com" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-600">Subject</label>
+              <select class="form-select" name="subject">
+                <option>General Enquiry</option>
+                <option>Report an Issue</option>
+                <option>Partnership / Advertising</option>
+                <option>Restaurant Owner Support</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-600">Message</label>
+              <textarea class="form-control" name="message" rows="5"
+                        placeholder="Tell us how we can help..." required></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary px-5 mt-3 fw-600">
+            <i class="bi bi-send me-1"></i> Send Message
+          </button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Contact info + FAQ -->
+    <div class="col-lg-5">
+      <div class="fm-card p-4 mb-4">
+        <h5 class="fw-700 mb-3">📍 Get in Touch</h5>
+        <ul class="list-unstyled mb-0">
+          <li class="d-flex align-items-start gap-3 mb-3">
+            <i class="bi bi-envelope-fill text-orange fs-5 mt-1"></i>
+            <div>
+              <div class="fw-600 small">Email</div>
+              <a href="mailto:{{ contact_info.email }}">{{ contact_info.email }}</a>
+            </div>
+          </li>
+          <li class="d-flex align-items-start gap-3 mb-3">
+            <i class="bi bi-telephone-fill text-orange fs-5 mt-1"></i>
+            <div>
+              <div class="fw-600 small">Phone</div>
+              <a href="tel:{{ contact_info.phone }}">{{ contact_info.phone }}</a>
+            </div>
+          </li>
+          <li class="d-flex align-items-start gap-3 mb-3">
+            <i class="bi bi-geo-alt-fill text-orange fs-5 mt-1"></i>
+            <div>
+              <div class="fw-600 small">Address</div>
+              <span class="text-muted small">{{ contact_info.address }}</span>
+            </div>
+          </li>
+          <li class="d-flex align-items-start gap-3">
+            <i class="bi bi-clock-fill text-orange fs-5 mt-1"></i>
+            <div>
+              <div class="fw-600 small">Working Hours</div>
+              <span class="text-muted small">{{ contact_info.hours }}</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- FAQ -->
+      <div class="fm-card p-4">
+        <h5 class="fw-700 mb-3">❓ FAQs</h5>
+        <div class="accordion accordion-flush" id="faqAccordion">
+          {% for faq in faqs %}
+          <div class="accordion-item border-0">
+            <h6 class="accordion-header">
+              <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-600 small"
+                      type="button" data-bs-toggle="collapse"
+                      data-bs-target="#faq{{ forloop.counter }}">
+                {{ faq.q }}
+              </button>
+            </h6>
+            <div id="faq{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body px-0 py-2 small text-muted">{{ faq.a }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

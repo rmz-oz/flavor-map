@@ -1,0 +1,215 @@
+{% extends 'restaurants/base.html' %}
+{% load crispy_forms_tags %}
+{% load restaurant_tags %}
+
+{% block title %}{{ user.username }} – Profile{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row g-4">
+
+    <!-- ── Profile Sidebar ─────────────────────────────────────── -->
+    <div class="col-lg-4">
+      <div class="fm-card p-4 text-center mb-4">
+        <!-- Avatar -->
+        {% if profile_obj.avatar %}
+        <img src="{{ profile_obj.avatar.url }}"
+             style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:3px solid var(--fm-orange);"
+             alt="{{ user.username }}">
+        {% else %}
+        <div style="width:90px; height:90px; border-radius:50%; background:var(--fm-orange); display:inline-flex; align-items:center; justify-content:center; color:#fff; font-size:2.5rem; font-weight:800; border:3px solid rgba(255,107,53,.3);">
+          {{ user.username|first|upper }}
+        </div>
+        {% endif %}
+
+        <h4 class="fw-800 mt-3 mb-0">{{ user.get_full_name|default:user.username }}</h4>
+        <p class="text-muted small mb-2">@{{ user.username }}</p>
+
+        {% if profile_obj.is_owner %}
+        <span class="badge bg-success mb-2">🏪 Restaurant Owner</span>
+        {% endif %}
+
+        {% if profile_obj.location %}
+        <p class="text-muted small mb-2"><i class="bi bi-geo-alt"></i> {{ profile_obj.location }}</p>
+        {% endif %}
+
+        {% if profile_obj.bio %}
+        <p class="text-muted small px-2">{{ profile_obj.bio }}</p>
+        {% endif %}
+
+        <hr>
+        <!-- Stats -->
+        <div class="row text-center g-0">
+          <div class="col-4">
+            <div class="fw-800 fs-5 text-orange">{{ user_reviews.count }}</div>
+            <div class="text-muted" style="font-size:.75rem;">Reviews</div>
+          </div>
+          <div class="col-4">
+            <div class="fw-800 fs-5 text-orange">{{ favorites.count }}</div>
+            <div class="text-muted" style="font-size:.75rem;">Saved</div>
+          </div>
+          <div class="col-4">
+            <div class="fw-800 fs-5 text-orange">{{ owned.count }}</div>
+            <div class="text-muted" style="font-size:.75rem;">Owned</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Profile -->
+      <div class="fm-card p-4">
+        <h6 class="fw-700 mb-3">✏️ Edit Profile</h6>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_profile">
+          {{ profile_form|crispy }}
+          <button type="submit" class="btn btn-primary btn-sm w-100 mt-2 fw-600">
+            Save Profile
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Main Content ────────────────────────────────────────── -->
+    <div class="col-lg-8">
+
+      <!-- Tabs -->
+      <ul class="nav nav-tabs mb-4" id="profileTabs">
+        <li class="nav-item">
+          <button class="nav-link active fw-600" data-bs-toggle="tab" data-bs-target="#tab-reviews">
+            ⭐ Reviews <span class="badge bg-secondary ms-1">{{ user_reviews.count }}</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-600" data-bs-toggle="tab" data-bs-target="#tab-favorites">
+            ❤️ Favorites <span class="badge bg-secondary ms-1">{{ favorites.count }}</span>
+          </button>
+        </li>
+        {% if owned %}
+        <li class="nav-item">
+          <button class="nav-link fw-600" data-bs-toggle="tab" data-bs-target="#tab-owned">
+            🏪 My Restaurants <span class="badge bg-secondary ms-1">{{ owned.count }}</span>
+          </button>
+        </li>
+        {% endif %}
+      </ul>
+
+      <div class="tab-content">
+
+        <!-- Reviews Tab -->
+        <div class="tab-pane fade show active" id="tab-reviews">
+          {% for review in user_reviews %}
+          <div class="review-card mb-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+              <div>
+                <a href="{% url 'restaurant_detail' review.restaurant.pk %}" class="fw-700 text-dark text-decoration-none">
+                  {{ review.restaurant.name }}
+                </a>
+                <div class="text-muted small">{{ review.created_at|date:"M d, Y" }}</div>
+              </div>
+              <div class="d-flex align-items-center gap-1">
+                {% for i in "12345" %}
+                <i class="bi bi-star{% if forloop.counter <= review.rating %}-fill star-fill{% else %} star-empty{% endif %} small"></i>
+                {% endfor %}
+                <span class="ms-1 rating-number" style="font-size:.9rem;">{{ review.rating }}/5</span>
+              </div>
+            </div>
+            <p class="mb-2">{{ review.text|truncatechars:200 }}</p>
+            <div class="d-flex gap-3">
+              <a href="{% url 'review_edit' review.pk %}" class="btn btn-sm btn-link p-0 text-muted">
+                <i class="bi bi-pencil"></i> Edit
+              </a>
+              <a href="{% url 'review_delete' review.pk %}" class="btn btn-sm btn-link p-0 text-danger">
+                <i class="bi bi-trash"></i> Delete
+              </a>
+              <a href="{% url 'restaurant_detail' review.restaurant.pk %}" class="btn btn-sm btn-link p-0 text-primary">
+                View Restaurant →
+              </a>
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-center py-5 text-muted">
+            <div style="font-size:3rem;">⭐</div>
+            <p class="mt-2">You haven't written any reviews yet.</p>
+            <a href="{% url 'restaurant_list' %}" class="btn btn-primary btn-sm">Discover Restaurants</a>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Favorites Tab -->
+        <div class="tab-pane fade" id="tab-favorites">
+          <div class="row g-3">
+            {% for fav in favorites %}
+            <div class="col-sm-6">
+              <div class="fm-card p-3 d-flex gap-3 align-items-center" style="border-radius:10px;">
+                <div style="width:52px; height:52px; border-radius:10px; background:linear-gradient(135deg,var(--fm-orange),#e55527); display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0;">
+                  {{ fav.restaurant.category.icon }}
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                  <a href="{% url 'restaurant_detail' fav.restaurant.pk %}" class="fw-700 text-dark text-decoration-none d-block text-truncate">
+                    {{ fav.restaurant.name }}
+                  </a>
+                  <div class="text-muted small">
+                    <i class="bi bi-geo-alt"></i> {{ fav.restaurant.city }} ·
+                    <span class="badge-price" style="font-size:.7rem;">{{ fav.restaurant.price_range }}</span>
+                  </div>
+                </div>
+                <button class="btn btn-sm text-danger border-0"
+                        onclick="toggleFavorite({{ fav.restaurant.pk }}, this); this.closest('.col-sm-6').remove();"
+                        title="Remove from favorites">
+                  <i class="bi bi-heart-fill"></i>
+                </button>
+              </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5 text-muted">
+              <div style="font-size:3rem;">❤️</div>
+              <p class="mt-2">No saved restaurants yet.</p>
+              <a href="{% url 'restaurant_list' %}" class="btn btn-primary btn-sm">Browse Restaurants</a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Owned Restaurants Tab -->
+        {% if owned %}
+        <div class="tab-pane fade" id="tab-owned">
+          {% for r in owned %}
+          <div class="review-card mb-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+              <div>
+                <a href="{% url 'restaurant_detail' r.pk %}" class="fw-700 text-dark text-decoration-none">
+                  {{ r.name }}
+                </a>
+                <div class="text-muted small mt-1">
+                  <i class="bi bi-geo-alt"></i> {{ r.city }} ·
+                  {{ r.category.icon }} {{ r.category.name }} ·
+                  <span class="badge-price" style="font-size:.7rem;">{{ r.price_range }}</span>
+                </div>
+                {% if r.avg_r %}
+                <div class="mt-1 small">
+                  ⭐ {{ r.avg_r|floatformat:1 }} avg · {{ r.rev_count }} review{{ r.rev_count|pluralize }}
+                </div>
+                {% else %}
+                <div class="mt-1 small text-muted">No reviews yet</div>
+                {% endif %}
+              </div>
+              <div class="d-flex gap-2">
+                <a href="{% url 'restaurant_edit' r.pk %}" class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a href="{% url 'restaurant_delete' r.pk %}" class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </div><!-- /tab-content -->
+    </div><!-- /main col -->
+
+  </div>
+</div>
+{% endblock %}

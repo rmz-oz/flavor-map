@@ -1,0 +1,608 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ page_title|default:"FlavorMap" }}{% endblock %} — FlavorMap</title>
+  <meta name="description" content="{% block meta_desc %}Discover the best restaurants, read real reviews, and build your personal favorites list.{% endblock %}">
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── CSS Variables ───────────────────────────────────────────── */
+    :root {
+      --fm-orange:      #FF6B35;
+      --fm-orange-dark: #E55527;
+      --fm-dark:        #1a1a2e;
+      --fm-navy:        #16213e;
+      --fm-card-shadow: 0 2px 16px rgba(0,0,0,.07);
+      --fm-card-hover:  0 8px 32px rgba(0,0,0,.13);
+      --fm-radius:      14px;
+      --fm-radius-sm:   8px;
+    }
+
+    /* ── Base ────────────────────────────────────────────────────── */
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #f5f6fa;
+      color: #2d2d2d;
+    }
+
+    /* ── Navbar ──────────────────────────────────────────────────── */
+    .navbar {
+      background: var(--fm-dark) !important;
+      box-shadow: 0 2px 20px rgba(0,0,0,.3);
+      padding: 12px 0;
+    }
+    .navbar-brand {
+      font-weight: 800;
+      font-size: 1.45rem;
+      color: var(--fm-orange) !important;
+      letter-spacing: -0.5px;
+    }
+    .navbar-brand span { color: #fff; }
+    .nav-link { color: rgba(255,255,255,.8) !important; font-weight: 500; transition: color .2s; }
+    .nav-link:hover { color: var(--fm-orange) !important; }
+    .navbar .search-input {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      color: #fff;
+      border-radius: 25px;
+      padding: 6px 18px;
+      width: 220px;
+      transition: all .3s;
+    }
+    .navbar .search-input:focus {
+      background: rgba(255,255,255,.18);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255,107,53,.4);
+      width: 260px;
+    }
+    .navbar .search-input::placeholder { color: rgba(255,255,255,.5); }
+
+    /* ── Buttons ─────────────────────────────────────────────────── */
+    .btn-primary {
+      background: var(--fm-orange);
+      border-color: var(--fm-orange);
+      font-weight: 600;
+    }
+    .btn-primary:hover, .btn-primary:focus {
+      background: var(--fm-orange-dark);
+      border-color: var(--fm-orange-dark);
+    }
+    .btn-outline-primary {
+      color: var(--fm-orange);
+      border-color: var(--fm-orange);
+      font-weight: 600;
+    }
+    .btn-outline-primary:hover {
+      background: var(--fm-orange);
+      border-color: var(--fm-orange);
+      color: #fff;
+    }
+
+    /* ── Cards ───────────────────────────────────────────────────── */
+    .fm-card {
+      background: #fff;
+      border: none;
+      border-radius: var(--fm-radius);
+      box-shadow: var(--fm-card-shadow);
+      transition: transform .22s ease, box-shadow .22s ease;
+      overflow: hidden;
+    }
+    .fm-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--fm-card-hover);
+    }
+    .fm-card .card-img-top {
+      height: 210px;
+      object-fit: cover;
+      width: 100%;
+    }
+    .fm-card-placeholder {
+      height: 210px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4.5rem;
+    }
+
+    /* ── Badges & Labels ─────────────────────────────────────────── */
+    .badge-price {
+      background: rgba(255,107,53,.12);
+      color: var(--fm-orange);
+      border: 1px solid rgba(255,107,53,.25);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: .78rem;
+      font-weight: 700;
+    }
+    .badge-category {
+      background: #f0f4ff;
+      color: #4a6cf7;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: .78rem;
+      font-weight: 600;
+    }
+    .badge-claimed {
+      background: #d4edda;
+      color: #155724;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+
+    /* ── Stars ───────────────────────────────────────────────────── */
+    .star-fill { color: #FFB800; }
+    .star-empty { color: #ddd; }
+
+    /* ── Section Headers ─────────────────────────────────────────── */
+    .section-title {
+      font-weight: 800;
+      font-size: 1.6rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      padding-bottom: 12px;
+    }
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 48px; height: 4px;
+      background: var(--fm-orange);
+      border-radius: 2px;
+    }
+
+    /* ── Messages ────────────────────────────────────────────────── */
+    .messages-container {
+      position: fixed;
+      top: 74px; right: 20px;
+      z-index: 9999;
+      max-width: 380px;
+    }
+    .toast-msg {
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.15);
+      animation: slideIn .3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+
+    /* ── Favorite Button ─────────────────────────────────────────── */
+    .btn-favorite {
+      background: none;
+      border: 2px solid #e74c3c;
+      color: #e74c3c;
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-weight: 600;
+      transition: all .2s;
+    }
+    .btn-favorite:hover, .btn-favorite.active {
+      background: #e74c3c;
+      color: #fff;
+    }
+
+    /* ── Star Rating Input Widget ────────────────────────────────── */
+    .star-rating-widget {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: flex-start;
+      gap: 4px;
+    }
+    .star-rating-widget input[type="radio"] { display: none; }
+    .star-rating-widget label {
+      font-size: 2.2rem;
+      cursor: pointer;
+      color: #d0d0d0;
+      transition: color .1s, transform .1s;
+      line-height: 1;
+    }
+    .star-rating-widget input:checked ~ label,
+    .star-rating-widget label:hover,
+    .star-rating-widget label:hover ~ label {
+      color: #FFB800;
+      transform: scale(1.12);
+    }
+
+    /* ── Lightbox ────────────────────────────────────────────────── */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.92);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: zoom-out;
+    }
+    #lightbox.open { display: flex; }
+    #lightbox img {
+      max-width: 90vw;
+      max-height: 85vh;
+      border-radius: 8px;
+      object-fit: contain;
+      box-shadow: 0 0 60px rgba(0,0,0,.5);
+    }
+    #lightbox .lb-caption {
+      color: #ccc;
+      margin-top: 14px;
+      font-size: .9rem;
+      text-align: center;
+    }
+    #lightbox .lb-close {
+      position: absolute;
+      top: 18px; right: 22px;
+      font-size: 2rem;
+      color: #fff;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* ── Gallery Thumbnails ──────────────────────────────────────── */
+    .gallery-thumb {
+      height: 110px;
+      object-fit: cover;
+      width: 100%;
+      border-radius: 8px;
+      cursor: zoom-in;
+      transition: transform .2s, filter .2s;
+    }
+    .gallery-thumb:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+
+    /* ── Map embed ───────────────────────────────────────────────── */
+    .map-embed { border-radius: 0 0 var(--fm-radius) var(--fm-radius); overflow: hidden; }
+
+    /* ── Review cards ────────────────────────────────────────────── */
+    .review-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 14px;
+      border-left: 4px solid var(--fm-orange);
+      box-shadow: var(--fm-card-shadow);
+    }
+    .reply-box {
+      background: #f8f9ff;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 12px;
+      border-left: 3px solid #4a6cf7;
+    }
+
+    /* ── Sidebar sticky ──────────────────────────────────────────── */
+    .sticky-sidebar { position: sticky; top: 84px; }
+
+    /* ── Footer ──────────────────────────────────────────────────── */
+    footer {
+      background: var(--fm-dark);
+      color: rgba(255,255,255,.65);
+      padding: 50px 0 30px;
+      margin-top: 70px;
+    }
+    footer .footer-brand { color: var(--fm-orange); font-weight: 800; font-size: 1.3rem; }
+    footer a { color: rgba(255,255,255,.55); text-decoration: none; transition: color .2s; }
+    footer a:hover { color: var(--fm-orange); }
+    footer .footer-divider { border-color: rgba(255,255,255,.1); }
+
+    /* ── Responsive tweaks ───────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .navbar .search-input { width: 160px; }
+      .fm-card .card-img-top { height: 170px; }
+      .section-title { font-size: 1.3rem; }
+    }
+
+    /* ── Filter chips ────────────────────────────────────────────── */
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #fff3ee;
+      color: var(--fm-orange);
+      border: 1px solid rgba(255,107,53,.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: .82rem;
+      font-weight: 600;
+    }
+    .filter-chip a { color: inherit; text-decoration: none; margin-left: 2px; }
+    .filter-chip a:hover { color: #c0392b; }
+
+    /* ── Misc ────────────────────────────────────────────────────── */
+    .text-orange { color: var(--fm-orange); }
+    .bg-orange { background: var(--fm-orange); }
+    .border-orange { border-color: var(--fm-orange) !important; }
+    .rating-number { font-weight: 800; font-size: 1.1rem; color: var(--fm-orange); }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+<!-- ── Navbar ─────────────────────────────────────────────────── -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+  <div class="container">
+    <!-- Brand -->
+    <a class="navbar-brand" href="{% url 'home' %}">🍽️ Flavor<span>Map</span></a>
+
+    <!-- Mobile toggle -->
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMain">
+      <!-- Left nav -->
+      <ul class="navbar-nav me-auto gap-1">
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+             href="{% url 'home' %}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'restaurant_list' %}active{% endif %}"
+             href="{% url 'restaurant_list' %}">Discover</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}"
+             href="{% url 'about' %}">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}"
+             href="{% url 'contact' %}">Contact</a>
+        </li>
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'restaurant_create' %}">
+            <i class="bi bi-plus-circle"></i> Add Restaurant
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+
+      <!-- Search bar -->
+      <form class="d-flex me-3" action="{% url 'restaurant_list' %}" method="get">
+        <input class="search-input" type="search" name="q" placeholder="Search restaurants..."
+               value="{{ request.GET.q }}">
+      </form>
+
+      <!-- Auth links -->
+      <ul class="navbar-nav gap-1">
+        {% if user.is_authenticated %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center gap-2"
+             href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle fs-5"></i>
+            <span>{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius:12px;">
+            <li>
+              <a class="dropdown-item" href="{% url 'profile' %}">
+                <i class="bi bi-person me-2"></i>My Profile
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'profile' %}">
+                <i class="bi bi-heart me-2"></i>My Favorites
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'restaurant_create' %}">
+                <i class="bi bi-plus-square me-2"></i>Add Restaurant
+              </a>
+            </li>
+            {% if user.is_staff %}
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item text-primary" href="/admin/">
+                <i class="bi bi-gear me-2"></i>Admin Panel
+              </a>
+            </li>
+            {% endif %}
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                <i class="bi bi-box-arrow-right me-2"></i>Logout
+              </a>
+            </li>
+          </ul>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'login' %}">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="btn btn-primary btn-sm px-3 ms-1" href="{% url 'register' %}">Sign Up</a>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Flash messages ──────────────────────────────────────────── -->
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="toast-msg alert alert-{{ message.tags|default:'info' }} alert-dismissible mb-2 py-2 px-3" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── Main content block ──────────────────────────────────────── -->
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="row gy-4">
+      <div class="col-lg-4">
+        <div class="footer-brand mb-2">🍽️ FlavorMap</div>
+        <p class="small mb-0">
+          Discover the best restaurants, read real reviews from real diners,
+          and build your personal favorites list.
+        </p>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6 class="text-white fw-700 mb-3">Explore</h6>
+        <ul class="list-unstyled small">
+          <li class="mb-1"><a href="{% url 'home' %}">Home</a></li>
+          <li class="mb-1"><a href="{% url 'restaurant_list' %}">All Restaurants</a></li>
+          <li class="mb-1"><a href="{% url 'restaurant_list' %}?sort=rating">Top Rated</a></li>
+          <li class="mb-1"><a href="{% url 'restaurant_list' %}?sort=newest">Newest</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6 class="text-white fw-700 mb-3">Account</h6>
+        <ul class="list-unstyled small">
+          {% if user.is_authenticated %}
+          <li class="mb-1"><a href="{% url 'profile' %}">My Profile</a></li>
+          <li class="mb-1"><a href="{% url 'restaurant_create' %}">Add Restaurant</a></li>
+          <li class="mb-1"><a href="{% url 'logout' %}">Logout</a></li>
+          {% else %}
+          <li class="mb-1"><a href="{% url 'login' %}">Login</a></li>
+          <li class="mb-1"><a href="{% url 'register' %}">Register</a></li>
+          {% endif %}
+        </ul>
+      </div>
+      <div class="col-lg-4">
+        <h6 class="text-white fw-700 mb-3">About</h6>
+        <ul class="list-unstyled small">
+          <li class="mb-1"><a href="{% url 'about' %}">About FlavorMap</a></li>
+          <li class="mb-1"><a href="{% url 'contact' %}">Contact Us</a></li>
+          {% if user.is_staff %}
+          <li class="mb-1"><a href="/admin/">Admin Panel</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+    <hr class="footer-divider mt-4">
+    <div class="text-center small">
+      <span>© 2025 FlavorMap. Built with Django & Bootstrap 5.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ── Lightbox ────────────────────────────────────────────────── -->
+<div id="lightbox" onclick="closeLightbox(event)">
+  <span class="lb-close" onclick="document.getElementById('lightbox').classList.remove('open')">✕</span>
+  <img id="lb-img" src="" alt="">
+  <div class="lb-caption" id="lb-caption"></div>
+</div>
+
+<!-- ── Scripts ────────────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/* ── Lightbox ──────────────────────────────────────────────────── */
+function openLightbox(src, caption) {
+  document.getElementById('lb-img').src       = src;
+  document.getElementById('lb-caption').textContent = caption || '';
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(e) {
+  if (e.target.id === 'lightbox') {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('lightbox').classList.remove('open');
+});
+
+/* ── CSRF helper ─────────────────────────────────────────────────*/
+function getCookie(name) {
+  const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return v ? v.pop() : '';
+}
+
+/* ── Star rating widget ──────────────────────────────────────────*/
+function initStarWidget(widgetId, hiddenId) {
+  const widget = document.getElementById(widgetId);
+  if (!widget) return;
+  widget.querySelectorAll('input[type=radio]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      document.getElementById(hiddenId).value = this.value;
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', () => initStarWidget('star-widget', 'id_rating'));
+
+/* ── AJAX: Favorite toggle ───────────────────────────────────────*/
+function toggleFavorite(restaurantId, btn) {
+  fetch(`/restaurants/${restaurantId}/favorite/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken':      getCookie('csrftoken'),
+      'X-Requested-With': 'XMLHttpRequest',
+    }
+  })
+  .then(r => r.json())
+  .then(data => {
+    const isFav = data.is_favorite;
+    btn.classList.toggle('active', isFav);
+    const icon = btn.querySelector('i');
+    if (icon) icon.className = isFav ? 'bi bi-heart-fill' : 'bi bi-heart';
+    btn.querySelector('.fav-label').textContent = isFav ? 'Saved' : 'Save';
+  })
+  .catch(console.error);
+}
+
+/* ── AJAX: Review like/dislike ───────────────────────────────────*/
+function voteReview(reviewId, isLike) {
+  fetch(`/reviews/${reviewId}/like/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken':   getCookie('csrftoken'),
+      'Content-Type':  'application/x-www-form-urlencoded',
+    },
+    body: `is_like=${isLike}`
+  })
+  .then(r => r.json())
+  .then(data => {
+    const lk = document.getElementById(`likes-${reviewId}`);
+    const dk = document.getElementById(`dislikes-${reviewId}`);
+    if (lk) lk.textContent = data.likes;
+    if (dk) dk.textContent = data.dislikes;
+  })
+  .catch(console.error);
+}
+
+/* ── Auto-submit filter form on dropdown change ──────────────────*/
+document.querySelectorAll('.auto-submit').forEach(el => {
+  el.addEventListener('change', () => el.closest('form').submit());
+});
+
+/* ── Toggle reply form ───────────────────────────────────────────*/
+function toggleReply(reviewId) {
+  const el = document.getElementById(`reply-form-${reviewId}`);
+  if (el) el.classList.toggle('d-none');
+}
+
+/* ── Auto-dismiss flash messages ─────────────────────────────────*/
+setTimeout(() => {
+  document.querySelectorAll('.toast-msg').forEach(el => {
+    const alert = bootstrap.Alert.getOrCreateInstance(el);
+    if (alert) alert.close();
+  });
+}, 4500);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

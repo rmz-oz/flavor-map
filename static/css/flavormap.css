@@ -1,0 +1,73 @@
+/* FlavorMap Custom Styles — loaded via {% static 'css/flavormap.css' %} */
+
+/* Utility */
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+.fw-800 { font-weight: 800; }
+.text-orange { color: #FF6B35 !important; }
+
+/* Override Bootstrap active nav-link */
+.navbar .nav-link.active {
+  color: #FF6B35 !important;
+  font-weight: 600;
+}
+
+/* Smooth page scroll */
+html { scroll-behavior: smooth; }
+
+/* Form controls focus ring in brand color */
+.form-control:focus,
+.form-select:focus {
+  border-color: #FF6B35;
+  box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.2);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f0f0f0; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #FF6B35; }
+
+/* Pagination active page */
+.page-item.active .page-link {
+  background-color: #FF6B35;
+  border-color: #FF6B35;
+}
+.page-link {
+  color: #FF6B35;
+}
+.page-link:hover {
+  color: #e55527;
+}
+
+/* Tab styling */
+.nav-tabs .nav-link {
+  color: #666;
+  border-bottom: 2px solid transparent;
+}
+.nav-tabs .nav-link.active {
+  color: #FF6B35;
+  border-bottom: 2px solid #FF6B35;
+  background: transparent;
+  font-weight: 600;
+}
+
+/* Image upload preview */
+.img-preview {
+  max-height: 160px;
+  border-radius: 8px;
+  margin-top: 8px;
+  display: none;
+}
+
+/* Skeleton loading (optional enhancement) */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s infinite;
+  border-radius: 4px;
+}
+@keyframes skeleton-loading {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

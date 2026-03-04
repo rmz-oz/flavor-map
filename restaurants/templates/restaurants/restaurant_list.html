@@ -1,0 +1,253 @@
+{% extends 'restaurants/base.html' %}
+{% load restaurant_tags %}
+
+{% block title %}Discover Restaurants{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Page header -->
+  <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+    <div>
+      <h1 class="fw-800 mb-1" style="font-size:1.8rem;">🍽️ Discover Restaurants</h1>
+      <p class="text-muted mb-0">
+        {% if active_q %}
+          Results for "<strong>{{ active_q }}</strong>" —
+        {% endif %}
+        <strong>{{ total_count }}</strong> restaurant{{ total_count|pluralize }} found
+      </p>
+    </div>
+    {% if user.is_authenticated %}
+    <a href="{% url 'restaurant_create' %}" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i> Add Restaurant
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Active filter chips -->
+  {% if active_q or active_category or active_city or active_price or active_min_rating %}
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <span class="text-muted small me-1 align-self-center">Active filters:</span>
+    {% if active_q %}<span class="filter-chip">🔍 "{{ active_q }}" <a href="?{% query_transform q='' %}">✕</a></span>{% endif %}
+    {% if active_category %}<span class="filter-chip">📂 {{ active_category }} <a href="?{% query_transform category='' %}">✕</a></span>{% endif %}
+    {% if active_city %}<span class="filter-chip">📍 {{ active_city }} <a href="?{% query_transform city='' %}">✕</a></span>{% endif %}
+    {% if active_price %}<span class="filter-chip">💶 {{ active_price }} <a href="?{% query_transform price_range='' %}">✕</a></span>{% endif %}
+    {% if active_min_rating %}<span class="filter-chip">⭐ {{ active_min_rating }}+ stars <a href="?{% query_transform min_rating='' %}">✕</a></span>{% endif %}
+    <a href="{% url 'restaurant_list' %}" class="btn btn-sm btn-outline-secondary">Clear all</a>
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- ── Sidebar Filters ───────────────────────────────────────── -->
+    <div class="col-lg-3">
+      <div class="fm-card p-4 sticky-sidebar">
+        <h6 class="fw-700 mb-3"><i class="bi bi-funnel me-2"></i>Filter & Sort</h6>
+
+        <form method="get" id="filterForm">
+          <!-- Preserve search query -->
+          {% if active_q %}<input type="hidden" name="q" value="{{ active_q }}">{% endif %}
+
+          <!-- Category -->
+          <div class="mb-3">
+            <label class="form-label small fw-600 text-muted text-uppercase" style="font-size:.72rem; letter-spacing:.8px;">Category</label>
+            <select name="category" class="form-select form-select-sm auto-submit">
+              <option value="">All Categories</option>
+              {% for cat in categories %}
+              <option value="{{ cat.slug }}" {% if active_category == cat.slug %}selected{% endif %}>
+                {{ cat.icon }} {{ cat.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- City -->
+          <div class="mb-3">
+            <label class="form-label small fw-600 text-muted text-uppercase" style="font-size:.72rem; letter-spacing:.8px;">City</label>
+            <select name="city" class="form-select form-select-sm auto-submit">
+              <option value="">All Cities</option>
+              {% for city in cities %}
+              <option value="{{ city }}" {% if active_city == city %}selected{% endif %}>{{ city }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Price range -->
+          <div class="mb-3">
+            <label class="form-label small fw-600 text-muted text-uppercase" style="font-size:.72rem; letter-spacing:.8px;">Price Range</label>
+            <div class="d-flex gap-1 flex-wrap">
+              {% for val, label in form.fields.price_range.choices %}
+              <div>
+                <input type="radio" class="btn-check auto-submit" name="price_range"
+                       id="price{{ forloop.counter }}" value="{{ val }}"
+                       {% if active_price == val %}checked{% endif %}
+                       {% if not val and not active_price %}checked{% endif %}>
+                <label class="btn btn-sm btn-outline-secondary" for="price{{ forloop.counter }}">
+                  {{ label }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Min rating -->
+          <div class="mb-3">
+            <label class="form-label small fw-600 text-muted text-uppercase" style="font-size:.72rem; letter-spacing:.8px;">Minimum Rating</label>
+            <select name="min_rating" class="form-select form-select-sm auto-submit">
+              <option value="">Any Rating</option>
+              <option value="3"   {% if active_min_rating == '3'   %}selected{% endif %}>3+ ⭐⭐⭐</option>
+              <option value="4"   {% if active_min_rating == '4'   %}selected{% endif %}>4+ ⭐⭐⭐⭐</option>
+              <option value="4.5" {% if active_min_rating == '4.5' %}selected{% endif %}>4.5+ ⭐⭐⭐⭐½</option>
+            </select>
+          </div>
+
+          <!-- Sort -->
+          <div class="mb-4">
+            <label class="form-label small fw-600 text-muted text-uppercase" style="font-size:.72rem; letter-spacing:.8px;">Sort By</label>
+            <select name="sort" class="form-select form-select-sm auto-submit">
+              <option value="">Default</option>
+              <option value="rating"    {% if active_sort == 'rating'    %}selected{% endif %}>⭐ Highest Rated</option>
+              <option value="newest"    {% if active_sort == 'newest'    %}selected{% endif %}>🆕 Newest First</option>
+              <option value="reviews"   {% if active_sort == 'reviews'   %}selected{% endif %}>💬 Most Reviewed</option>
+              <option value="price_asc" {% if active_sort == 'price_asc' %}selected{% endif %}>💸 Price: Low → High</option>
+              <option value="price_desc"{% if active_sort == 'price_desc'%}selected{% endif %}>💰 Price: High → Low</option>
+            </select>
+          </div>
+
+          <!-- Search bar (inside sidebar on mobile) -->
+          <div class="d-block d-lg-none mb-3">
+            <label class="form-label small fw-600 text-muted text-uppercase" style="font-size:.72rem; letter-spacing:.8px;">Search</label>
+            <input type="text" name="q" class="form-control form-control-sm"
+                   placeholder="Restaurant, cuisine..." value="{{ active_q }}">
+            <button class="btn btn-primary btn-sm w-100 mt-2" type="submit">Apply Filters</button>
+          </div>
+
+          <!-- Clear link -->
+          <a href="{% url 'restaurant_list' %}" class="btn btn-outline-secondary btn-sm w-100">
+            <i class="bi bi-x-circle me-1"></i>Clear Filters
+          </a>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Results Grid ──────────────────────────────────────────── -->
+    <div class="col-lg-9">
+      <!-- Mobile search bar -->
+      <div class="d-none d-lg-block mb-4">
+        <form action="{% url 'restaurant_list' %}" method="get" class="d-flex gap-2">
+          {% for k, v in request.GET.items %}{% if k != 'q' and k != 'page' %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endif %}{% endfor %}
+          <input type="text" name="q" class="form-control"
+                 placeholder="🔍 Search by name, cuisine or location..." value="{{ active_q }}">
+          <button class="btn btn-primary px-4" type="submit">Search</button>
+        </form>
+      </div>
+
+      <!-- Restaurant cards grid -->
+      <div class="row g-4">
+        {% for r in restaurants %}
+        <div class="col-sm-6 col-xl-4">
+          <div class="fm-card card h-100">
+            <!-- Image -->
+            {% if r.main_photo %}
+            <img src="{{ r.main_photo.url }}" class="card-img-top" alt="{{ r.name }}">
+            {% else %}
+            <div class="fm-card-placeholder"
+                 style="background: linear-gradient(135deg,
+                   {% cycle '#667eea,#764ba2' '#f093fb,#f5576c' '#4facfe,#00f2fe' '#43e97b,#38f9d7' '#fa709a,#fee140' '#a18cd1,#fbc2eb' %});">
+              {{ r.category.icon }}
+            </div>
+            {% endif %}
+
+            <div class="card-body p-3 d-flex flex-column">
+              <!-- Top row -->
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge-category">{{ r.category.icon }} {{ r.category.name }}</span>
+                <span class="badge-price">{{ r.price_range }}</span>
+              </div>
+
+              <!-- Title -->
+              <h6 class="fw-700 mb-1" style="font-size:1rem;">
+                <a href="{% url 'restaurant_detail' r.pk %}" class="text-dark text-decoration-none stretched-link">
+                  {{ r.name }}
+                </a>
+              </h6>
+
+              <!-- Location -->
+              <p class="text-muted mb-2" style="font-size:.82rem;">
+                <i class="bi bi-geo-alt"></i>
+                {{ r.city }}{% if r.district %}, {{ r.district }}{% endif %}
+              </p>
+
+              <!-- Stars -->
+              <div class="d-flex align-items-center gap-1 mb-2">
+                {% with avg=r.avg_r|default:0 %}
+                <span class="rating-number" style="font-size:.95rem;">{{ avg|floatformat:1 }}</span>
+                {{ avg|bs_stars }}
+                <span class="text-muted" style="font-size:.78rem;">({{ r.rev_count }})</span>
+                {% endwith %}
+              </div>
+
+              <!-- Description snippet -->
+              <p class="text-muted flex-grow-1" style="font-size:.82rem; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">
+                {{ r.description|truncatechars:80 }}
+              </p>
+
+              <!-- Claimed badge -->
+              {% if r.is_claimed %}
+              <div class="mt-2"><span class="badge-claimed">✓ Verified Owner</span></div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+          <div style="font-size: 4rem;">🔍</div>
+          <h4 class="text-muted mt-3 fw-700">No Restaurants Found</h4>
+          <p class="text-muted">
+            {% if active_q or active_category or active_city or active_price %}
+              Try adjusting your filters or
+              <a href="{% url 'restaurant_list' %}">clear all filters</a>.
+            {% else %}
+              Be the first to
+              <a href="{% url 'restaurant_create' %}">add a restaurant!</a>
+            {% endif %}
+          </p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if restaurants.has_other_pages %}
+      <nav class="mt-5" aria-label="Restaurant list pages">
+        <ul class="pagination justify-content-center gap-1">
+          {% if restaurants.has_previous %}
+          <li class="page-item">
+            <a class="page-link rounded-3" href="?{{ query_string }}&page={{ restaurants.previous_page_number }}">
+              ‹ Prev
+            </a>
+          </li>
+          {% endif %}
+          {% for num in restaurants.paginator.page_range %}
+            {% if restaurants.number == num %}
+            <li class="page-item active">
+              <span class="page-link rounded-3">{{ num }}</span>
+            </li>
+            {% elif num > restaurants.number|add:'-3' and num < restaurants.number|add:'3' %}
+            <li class="page-item">
+              <a class="page-link rounded-3" href="?{{ query_string }}&page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+          {% endfor %}
+          {% if restaurants.has_next %}
+          <li class="page-item">
+            <a class="page-link rounded-3" href="?{{ query_string }}&page={{ restaurants.next_page_number }}">
+              Next ›
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+    </div><!-- /col -->
+  </div><!-- /row -->
+</div><!-- /container -->
+{% endblock %}

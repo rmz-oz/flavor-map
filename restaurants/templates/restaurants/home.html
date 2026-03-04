@@ -1,0 +1,216 @@
+{% extends 'restaurants/base.html' %}
+{% load restaurant_tags %}
+
+{% block title %}Home{% endblock %}
+{% block meta_desc %}Discover the best restaurants near you. Real reviews, real ratings, real food lovers.{% endblock %}
+
+{% block content %}
+
+<!-- ══ Hero Section ══════════════════════════════════════════════ -->
+<section style="background: linear-gradient(135deg, var(--fm-dark) 0%, #16213e 55%, #0f3460 100%); padding: 90px 0 70px; color: #fff;">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <p class="text-uppercase small fw-600 mb-2" style="color: var(--fm-orange); letter-spacing: 2px;">
+          🍽️ Restaurant Discovery Platform
+        </p>
+        <h1 class="display-4 fw-800 mb-3" style="line-height: 1.15;">
+          Find Your Next<br>
+          <span style="color: var(--fm-orange);">Favorite</span> Restaurant
+        </h1>
+        <p class="lead mb-5" style="color: rgba(255,255,255,.7); max-width: 520px;">
+          Real reviews from real diners. Discover hidden gems, top-rated spots,
+          and every cuisine imaginable — all in one place.
+        </p>
+        <!-- Hero search bar -->
+        <form action="{% url 'restaurant_list' %}" method="get" class="d-flex flex-column flex-sm-row gap-2" style="max-width: 560px;">
+          <input
+            class="form-control form-control-lg flex-grow-1"
+            type="text" name="q"
+            placeholder="🔍  Cuisine, restaurant name, neighbourhood..."
+            style="border-radius: 10px; border: 0; font-size: 1rem;">
+          <button class="btn btn-primary btn-lg px-4" type="submit" style="border-radius: 10px; white-space: nowrap;">
+            Search
+          </button>
+        </form>
+        <!-- Quick category pills -->
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          {% for cat in categories %}
+          <a href="{% url 'restaurant_list' %}?category={{ cat.slug }}"
+             class="btn btn-sm"
+             style="background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.2); border-radius: 20px; font-size: .82rem;">
+            {{ cat.icon }} {{ cat.name }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-flex justify-content-end">
+        <!-- Stat cards -->
+        <div class="d-flex flex-column gap-3" style="min-width: 220px;">
+          <div style="background: rgba(255,255,255,.08); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px 24px; text-align: center;">
+            <div style="font-size: 2.4rem; font-weight: 800; color: var(--fm-orange);">{{ hero_stats.restaurants }}</div>
+            <div style="color: rgba(255,255,255,.7); font-size: .9rem;">Restaurants listed</div>
+          </div>
+          <div style="background: rgba(255,255,255,.08); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px 24px; text-align: center;">
+            <div style="font-size: 2.4rem; font-weight: 800; color: #4ade80;">{{ hero_stats.reviews }}</div>
+            <div style="color: rgba(255,255,255,.7); font-size: .9rem;">Reviews written</div>
+          </div>
+          <div style="background: rgba(255,255,255,.08); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px 24px; text-align: center;">
+            <div style="font-size: 2.4rem; font-weight: 800; color: #60a5fa;">{{ hero_stats.cities }}</div>
+            <div style="color: rgba(255,255,255,.7); font-size: .9rem;">Cities covered</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ Category Strip ════════════════════════════════════════════ -->
+<section class="py-4" style="background: #fff; border-bottom: 1px solid #f0f0f0;">
+  <div class="container">
+    <div class="d-flex gap-3 flex-wrap align-items-center justify-content-center">
+      <a href="{% url 'restaurant_list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-600">
+        🍽️ All
+      </a>
+      {% for cat in categories %}
+      <a href="{% url 'restaurant_list' %}?category={{ cat.slug }}"
+         class="btn btn-sm rounded-pill px-3 fw-600"
+         style="background: #f8f9ff; color: #4a6cf7; border: 1px solid #e0e7ff;">
+        {{ cat.icon }} {{ cat.name }}
+        {% if cat.count %}<span class="ms-1 badge bg-light text-secondary" style="font-weight:500; font-size:.7rem;">{{ cat.count }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══ Top Rated ═════════════════════════════════════════════════ -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-1">
+      <h2 class="section-title mb-0">🏆 Top Rated</h2>
+      <a href="{% url 'restaurant_list' %}?sort=rating" class="btn btn-outline-primary btn-sm">See all →</a>
+    </div>
+    <p class="text-muted mb-4">Our highest-rated restaurants, ranked by diner reviews.</p>
+
+    <div class="row g-4">
+      {% for r in top_rated %}
+      <div class="col-sm-6 col-lg-4">
+        <div class="fm-card card h-100">
+          <!-- Photo or placeholder -->
+          {% if r.main_photo %}
+          <img src="{{ r.main_photo.url }}" class="card-img-top" alt="{{ r.name }}">
+          {% else %}
+          <div class="fm-card-placeholder"
+               style="background: linear-gradient(135deg,
+                 {% cycle '#667eea,#764ba2' '#f093fb,#f5576c' '#4facfe,#00f2fe' '#43e97b,#38f9d7' '#fa709a,#fee140' '#a18cd1,#fbc2eb' %});">
+            {{ r.category.icon }}
+          </div>
+          {% endif %}
+
+          <div class="card-body p-4 d-flex flex-column">
+            <!-- Category & price -->
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge-category">{{ r.category.icon }} {{ r.category.name }}</span>
+              <span class="badge-price">{{ r.price_range }}</span>
+            </div>
+            <!-- Name -->
+            <h5 class="fw-700 mb-1">
+              <a href="{% url 'restaurant_detail' r.pk %}" class="text-dark text-decoration-none stretched-link">
+                {{ r.name }}
+              </a>
+            </h5>
+            <!-- Location -->
+            <p class="text-muted small mb-2">
+              <i class="bi bi-geo-alt"></i>
+              {{ r.city }}{% if r.district %}, {{ r.district }}{% endif %}
+            </p>
+            <!-- Stars -->
+            <div class="d-flex align-items-center gap-2 mt-auto">
+              <span class="rating-number">{{ r.avg_r|floatformat:1 }}</span>
+              {{ r.avg_r|bs_stars }}
+              <span class="text-muted small">({{ r.rev_count }})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center py-5 text-muted">
+        <div style="font-size: 3.5rem;">🌟</div>
+        <p class="mt-2">No rated restaurants yet. <a href="{% url 'restaurant_create' %}">Be the first to add one!</a></p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══ Newest Restaurants ════════════════════════════════════════ -->
+<section class="py-5" style="background: #fff;">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-1">
+      <h2 class="section-title mb-0">🆕 Recently Added</h2>
+      <a href="{% url 'restaurant_list' %}?sort=newest" class="btn btn-outline-primary btn-sm">See all →</a>
+    </div>
+    <p class="text-muted mb-4">Fresh additions to FlavorMap — be among the first to review them.</p>
+
+    <div class="row g-4">
+      {% for r in newest %}
+      <div class="col-sm-6 col-lg-4">
+        <div class="fm-card card h-100">
+          {% if r.main_photo %}
+          <img src="{{ r.main_photo.url }}" class="card-img-top" alt="{{ r.name }}">
+          {% else %}
+          <div class="fm-card-placeholder"
+               style="background: linear-gradient(135deg,
+                 {% cycle '#a18cd1,#fbc2eb' '#43e97b,#38f9d7' '#fa709a,#fee140' '#4facfe,#00f2fe' '#f093fb,#f5576c' '#667eea,#764ba2' %});">
+            {{ r.category.icon }}
+          </div>
+          {% endif %}
+
+          <div class="card-body p-4 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge-category">{{ r.category.icon }} {{ r.category.name }}</span>
+              <span class="badge-price">{{ r.price_range }}</span>
+            </div>
+            <h5 class="fw-700 mb-1">
+              <a href="{% url 'restaurant_detail' r.pk %}" class="text-dark text-decoration-none stretched-link">
+                {{ r.name }}
+              </a>
+            </h5>
+            <p class="text-muted small mb-2">
+              <i class="bi bi-geo-alt"></i> {{ r.city }}
+            </p>
+            <p class="text-muted small flex-grow-1">{{ r.description|truncatechars:90 }}</p>
+            <div class="d-flex align-items-center gap-2 mt-2">
+              <i class="bi bi-clock text-muted small"></i>
+              <span class="text-muted" style="font-size:.78rem;">Added {{ r.created_at|timesince }} ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA Banner ════════════════════════════════════════════════ -->
+{% if not user.is_authenticated %}
+<section style="background: linear-gradient(135deg, var(--fm-orange) 0%, #e55527 100%); padding: 60px 0; color: #fff;">
+  <div class="container text-center">
+    <h2 class="fw-800 mb-2">Ready to Explore?</h2>
+    <p class="mb-4" style="opacity: .85; font-size: 1.1rem;">
+      Join FlavorMap to write reviews, save favorites, and discover your next great meal.
+    </p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5 fw-700" style="color: var(--fm-orange);">
+        Create Free Account
+      </a>
+      <a href="{% url 'restaurant_list' %}" class="btn btn-outline-light btn-lg px-5 fw-700">
+        Browse Restaurants
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'restaurants/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Edit Review{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'restaurant_detail' review.restaurant.pk %}">{{ review.restaurant.name }}</a></li>
+          <li class="breadcrumb-item active">Edit Review</li>
+        </ol>
+      </nav>
+
+      <div class="fm-card p-4 p-lg-5">
+        <h3 class="fw-800 mb-1">✏️ Edit Your Review</h3>
+        <p class="text-muted mb-4">
+          Reviewing: <strong>{{ review.restaurant.name }}</strong>
+        </p>
+
+        <form method="post">
+          {% csrf_token %}
+
+          <!-- Star widget -->
+          <div class="mb-3">
+            <label class="form-label fw-600">Your Rating <span class="text-danger">*</span></label>
+            <div class="star-rating-widget" id="star-widget">
+              {% for i in "54321" %}
+              <input type="radio" id="es{{ i }}" name="rating_ui" value="{{ i }}"
+                     {% if review.rating|stringformat:"s" == i %}checked{% endif %}>
+              <label for="es{{ i }}" title="{{ i }} star">★</label>
+              {% endfor %}
+            </div>
+            <input type="hidden" name="rating" id="id_rating" value="{{ review.rating }}">
+          </div>
+
+          {{ form.text|as_crispy_field }}
+
+          {% if form.errors %}
+          <div class="alert alert-danger small">
+            {% for field, errors in form.errors.items %}{% for e in errors %}{{ e }}<br>{% endfor %}{% endfor %}
+          </div>
+          {% endif %}
+
+          <div class="d-flex gap-3 mt-4">
+            <button type="submit" class="btn btn-primary px-5 fw-600">Save Changes</button>
+            <a href="{% url 'restaurant_detail' review.restaurant.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.star-rating-widget input').forEach(inp => {
+  inp.addEventListener('change', function() {
+    document.getElementById('id_rating').value = this.value;
+  });
+});
+</script>
+{% endblock %}
