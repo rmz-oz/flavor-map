@@ -271,7 +271,7 @@ class Command(BaseCommand):
             )
             u.set_password('review123')
             u.save()
-            UserProfile.objects.get_or_create(u, defaults={'bio': f'Food lover from Turkey'})
+            UserProfile.objects.get_or_create(user=u, defaults={'bio': 'Food lover from Turkey'})
 
         self.stdout.write('  ✓ 5 users created')
         self.admin_user = admin

@@ -54,6 +54,10 @@ def about(request):
             '🍴 Full menu listings with prices',
             '🏷️  Restaurant owners can claim and manage listings',
         ],
+        'tech_stack': [
+            'Django 4.2', 'Python 3.11', 'Bootstrap 5',
+            'SQLite', 'Pillow', 'Crispy Forms',
+        ],
     }
     return render(request, 'restaurants/about.html', context)
 
